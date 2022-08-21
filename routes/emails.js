@@ -1,7 +1,10 @@
 const express = require("express");
+const uuid = require("uuid");
 let builder = require("xmlbuilder");
 
 const jsonToCsv = require("../convert-json.js");
+const readBody = require("../lib/readbody.js");
+
 const emails = require("../fixtures/emails");
 
 let getEmailsRoute = (req, res) => {
@@ -18,7 +21,7 @@ let getEmailsRoute = (req, res) => {
       res.send(emails);
     },
     default: () => {
-      res.status(406).send("Not Acceptable");
+      res.send("Not Acceptable").sendStatus(406);
     },
   });
 };
@@ -28,8 +31,38 @@ let getEmailRoute = (req, res) => {
   res.send(email);
 };
 
+const createEmailRoute = async (req, res) => {
+  let body = await readBody(req);
+  let email = { ...JSON.parse(body), id: uuid.v4() };
+  emails.push(email);
+  res.status(201);
+  res.send(email);
+};
+
+let updateEmailRoute = async (req, res) => {
+  let body = await readBody(req);
+  let email = emails.find((item) => item.id === req.params.id);
+  let index = emails.indexOf(email);
+  emails[index] = { ...email, ...JSON.parse(body) };
+  res.status(200);
+  res.send(email);
+};
+
+let deleteEmailRoute = (req, res) => {
+  let email = emails.find((item) => item.id === req.params.id);
+  let index = emails.indexOf(email);
+  emails.splice(index, 1);
+  res.sendStatus(204);
+};
+
 let emailsRouter = express.Router();
-emailsRouter.get("/", getEmailsRoute);
-emailsRouter.get("/:id", getEmailRoute);
+
+emailsRouter.route("/").get(getEmailsRoute).post(createEmailRoute);
+
+emailsRouter
+  .route("/:id")
+  .get(getEmailRoute)
+  .patch(updateEmailRoute)
+  .delete(deleteEmailRoute);
 
 module.exports = emailsRouter;
