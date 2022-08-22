@@ -11,7 +11,7 @@ const readBody = require("../lib/read-body.js");
 
 const emails = require("../fixtures/emails");
 
-const upload = multer({ dest: path.join(__dirname, "uploads/") });
+const upload = multer({ dest: path.join(__dirname, "../uploads/") });
 
 let getEmailsRoute = (req, res) => {
   res.format({
@@ -38,7 +38,7 @@ let getEmailRoute = (req, res) => {
 };
 
 const createEmailRoute = async (req, res) => {
-  let attachments = req.files.map((f) => f.filename);
+  let attachments = (req.files || []).map((f) => "/uploads/" + f.filename);
   let email = { ...req.body, id: uuid.v4(), attachments };
   emails.push(email);
   res.status(201);
