@@ -1,10 +1,10 @@
 const express = require("express");
 const uuid = require("uuid");
 let builder = require("xmlbuilder");
+const bodyParser = require("body-parser");
 
 const jsonToCsv = require("../convert-json.js");
 const readBody = require("../lib/read-body.js");
-const jsonBodyParser = require("../lib/json-body-parser.js");
 
 const emails = require("../fixtures/emails");
 
@@ -56,15 +56,12 @@ let deleteEmailRoute = (req, res) => {
 
 let emailsRouter = express.Router();
 
-emailsRouter
-  .route("/")
-  .get(getEmailsRoute)
-  .post(jsonBodyParser, createEmailRoute);
+emailsRouter.route("/").get(getEmailsRoute).post(bodyParser, createEmailRoute);
 
 emailsRouter
   .route("/:id")
   .get(getEmailRoute)
-  .patch(jsonBodyParser, updateEmailRoute)
+  .patch(bodyParser, updateEmailRoute)
   .delete(deleteEmailRoute);
 
 module.exports = emailsRouter;
