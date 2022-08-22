@@ -1,12 +1,17 @@
 const express = require("express");
+const path = require("path");
+
 const uuid = require("uuid");
 let builder = require("xmlbuilder");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 
 const jsonToCsv = require("../convert-json.js");
 const readBody = require("../lib/read-body.js");
 
 const emails = require("../fixtures/emails");
+
+const upload = multer({ dest: path.join(__dirname, "uploads/") });
 
 let getEmailsRoute = (req, res) => {
   res.format({
@@ -33,7 +38,8 @@ let getEmailRoute = (req, res) => {
 };
 
 const createEmailRoute = async (req, res) => {
-  let email = { ...req.body, id: uuid.v4() };
+  let attachments = req.files.map((f) => f.filename);
+  let email = { ...req.body, id: uuid.v4(), attachments };
   emails.push(email);
   res.status(201);
   res.send(email);
@@ -56,7 +62,10 @@ let deleteEmailRoute = (req, res) => {
 
 let emailsRouter = express.Router();
 
-emailsRouter.route("/").get(getEmailsRoute).post(bodyParser, createEmailRoute);
+emailsRouter
+  .route("/")
+  .get(getEmailsRoute)
+  .post(bodyParser.json(), upload.array("attachments"), createEmailRoute);
 
 emailsRouter
   .route("/:id")
