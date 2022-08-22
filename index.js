@@ -9,7 +9,11 @@ const logger = require("./lib/logger");
 
 const usersRouter = require("./routes/users");
 const { emailsRouter, emails } = require("./routes/emails");
-const { tokensRouter } = require("./routes/tokens");
+const tokensRouter = require("./routes/tokens");
+
+const basicAuth = require("./lib/basic-auth");
+const tokenAuth = require("./lib/token-auth");
+const findUser = require("./lib/find-user");
 
 let app = express();
 
@@ -24,8 +28,8 @@ app.use(
   })
 );
 app.use("/tokens", tokensRouter);
-app.use(tokenAuth(findUserByToken));
-app.user(basicAuth(findUserByCredentials));
+app.use(tokenAuth(findUser.byToken));
+app.use(basicAuth(findUser.byCredentials));
 app.use("/users", usersRouter);
 app.use("/emails", emailsRouter);
 
