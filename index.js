@@ -1,11 +1,15 @@
+require("dotenv").config();
+
 const express = require("express");
 const path = require("path");
 
-const logger = require("./lib/logger");
-const usersRouter = require("./routes/users");
-const { emailsRouter, emails } = require("./routes/emails");
 const compress = require("compression");
 const serveStatic = require("serve-static");
+const logger = require("./lib/logger");
+
+const usersRouter = require("./routes/users");
+const { emailsRouter, emails } = require("./routes/emails");
+const { tokensRouter } = require("./routes/tokens");
 
 let app = express();
 
@@ -19,6 +23,9 @@ app.use(
     setHeaders: setCustomMimetype,
   })
 );
+app.use("/tokens", tokensRouter);
+app.use(tokenAuth(findUserByToken));
+app.user(basicAuth(findUserByCredentials));
 app.use("/users", usersRouter);
 app.use("/emails", emailsRouter);
 
