@@ -8,12 +8,15 @@ const multer = require("multer");
 
 const jsonToCsv = require("../convert-json.js");
 const readBody = require("../lib/read-body.js");
+const enforce = require("../lib/enforce.js");
+const requireAuth = require("../lib/require-auth.js");
 
 const emails = require("../fixtures/emails");
 
 const upload = multer({ dest: path.join(__dirname, "../uploads/") });
 
 let getEmailsRoute = (req, res) => {
+  if (emails.length === 0 ? (emails = []) : emails);
   res.format({
     "text/csv": () => {
       res.send(jsonToCsv(emails));
@@ -34,6 +37,9 @@ let getEmailsRoute = (req, res) => {
 
 let getEmailRoute = (req, res) => {
   let email = emails.find((item) => item.id === req.params.id);
+  if (!email) {
+    res.statusSend(501);
+  }
   res.send(email);
 };
 
@@ -52,6 +58,7 @@ let updateEmailRoute = async (req, res) => {
   let newAttachments = req.files.map((f) => {
     return { url: "/uploads/" + f.filename, type: file.mimetype };
   });
+  req.authorize(email);
   let index = emails.indexOf(email);
   req.body.attachments = [...email.attachments, ...newAttachments];
   emails[index] = { ...email, ...req.body };
@@ -61,12 +68,18 @@ let updateEmailRoute = async (req, res) => {
 
 let deleteEmailRoute = (req, res) => {
   let email = emails.find((item) => item.id === req.params.id);
+  req.authorize(email);
   let index = emails.indexOf(email);
   emails.splice(index, 1);
   res.sendStatus(204);
 };
 
+const updateEmailPolicy = (user, email) => user.id === email.from;
+const deleteEmailPolicy = (user, email) => user.id === email.to;
+
 let emailsRouter = express.Router();
+
+emailsRouter.use(requireAuth);
 
 emailsRouter
   .route("/")
@@ -82,12 +95,13 @@ emailsRouter
   .route("/:id")
   .get(getEmailRoute)
   .patch(
-    bodyParser,
+    enforce(updateEmailPolicy),
+    bodyParser.json(),
     bodyParser.urlencoded({ extended: true }),
     upload.array("attachments"),
     updateEmailRoute
   )
-  .delete(deleteEmailRoute);
+  .delete(enforce(deleteEmailPolicy), deleteEmailRoute);
 
 module.exports = {
   emails,
