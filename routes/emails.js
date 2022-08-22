@@ -3,7 +3,8 @@ const uuid = require("uuid");
 let builder = require("xmlbuilder");
 
 const jsonToCsv = require("../convert-json.js");
-const readBody = require("../lib/readbody.js");
+const readBody = require("../lib/read-body.js");
+const jsonBodyParser = require("../lib/json-body-parser.js");
 
 const emails = require("../fixtures/emails");
 
@@ -32,18 +33,16 @@ let getEmailRoute = (req, res) => {
 };
 
 const createEmailRoute = async (req, res) => {
-  let body = await readBody(req);
-  let email = { ...JSON.parse(body), id: uuid.v4() };
+  let email = { ...req.body, id: uuid.v4() };
   emails.push(email);
   res.status(201);
   res.send(email);
 };
 
 let updateEmailRoute = async (req, res) => {
-  let body = await readBody(req);
   let email = emails.find((item) => item.id === req.params.id);
   let index = emails.indexOf(email);
-  emails[index] = { ...email, ...JSON.parse(body) };
+  emails[index] = { ...email, ...req.body };
   res.status(200);
   res.send(email);
 };
@@ -57,12 +56,15 @@ let deleteEmailRoute = (req, res) => {
 
 let emailsRouter = express.Router();
 
-emailsRouter.route("/").get(getEmailsRoute).post(createEmailRoute);
+emailsRouter
+  .route("/")
+  .get(getEmailsRoute)
+  .post(jsonBodyParser, createEmailRoute);
 
 emailsRouter
   .route("/:id")
   .get(getEmailRoute)
-  .patch(updateEmailRoute)
+  .patch(jsonBodyParser, updateEmailRoute)
   .delete(deleteEmailRoute);
 
 module.exports = emailsRouter;
