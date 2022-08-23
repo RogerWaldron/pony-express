@@ -10,6 +10,41 @@ Server will be a pure backend API, so it will reply with JSON-formatted strings.
 
 ## Stack Used
 
+Express
 Node.js
 
+###Middleware
+
+- body-parser
+- compression
+- jsonwebtoken
+- morgan
+- multer
+- serve-static
+
+###Testing
+
+- Jest
+- Sinon
+- SuperTest
+
 ## Getting Started
+
+###Install
+
+```
+npm install
+```
+
+###Create file .env.local with keys and values
+
+```
+EXPIREIN=7d
+SIGNATURE=s3curepasswordhere
+```
+
+###Run
+
+```
+npm start
+```
