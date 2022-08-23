@@ -45,6 +45,14 @@ SIGNATURE=s3curepasswordhere
 
 ###Run
 
+To start app:
+
 ```
 npm start
+```
+
+To run tests:
+
+```
+npm test
 ```
